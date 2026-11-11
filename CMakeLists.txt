@@ -33,3 +33,14 @@ target_link_libraries(sender PRIVATE rudp)
 
 add_executable(receiver src/receiver.cpp)
 target_link_libraries(receiver PRIVATE rudp)
+
+# --- Tests -------------------------------------------------------------------
+option(RUDP_BUILD_TESTS "Build the test suite" ON)
+if(RUDP_BUILD_TESTS)
+    enable_testing()
+    find_package(Threads REQUIRED)
+    add_executable(arq_tests tests/ArqTests.cpp)
+    target_link_libraries(arq_tests PRIVATE rudp Threads::Threads)
+    add_test(NAME arq_tests COMMAND arq_tests)
+    set_tests_properties(arq_tests PROPERTIES TIMEOUT 180)
+endif()

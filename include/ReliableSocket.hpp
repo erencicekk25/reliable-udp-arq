@@ -71,6 +71,9 @@ public:
     // Binds the local UDP port (receiver side).
     void bind(std::uint16_t port);
 
+    // UDP port this socket is bound to (useful after bind(0)); 0 if unbound.
+    std::uint16_t localPort() const;
+
     // Blocks until a peer performs the SYN handshake (receiver side).
     void accept();
 

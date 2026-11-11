@@ -86,7 +86,16 @@ void ReliableSocket::bind(std::uint16_t port) {
     if (::bind(fd_, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) < 0) {
         throw SocketError(errnoMessage("bind() to port " + std::to_string(port) + " failed"));
     }
-    log::write(log::Level::Info, "Bound to UDP port " + std::to_string(port));
+    log::write(log::Level::Info, "Bound to UDP port " + std::to_string(localPort()));
+}
+
+std::uint16_t ReliableSocket::localPort() const {
+    sockaddr_in addr{};
+    socklen_t length = sizeof(addr);
+    if (fd_ < 0 || ::getsockname(fd_, reinterpret_cast<sockaddr*>(&addr), &length) < 0) {
+        return 0;
+    }
+    return ntohs(addr.sin_port);
 }
 
 void ReliableSocket::accept() {
