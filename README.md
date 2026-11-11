@@ -1,5 +1,9 @@
 # reliable-udp-arq
 
+[![CI](https://github.com/erencicekk25/./actions/workflows/ci.yml/badge.svg)](https://github.com/erencicekk25/./actions/workflows/ci.yml)
+![Language](https://img.shields.io/badge/C%2B%2B-17-blue.svg)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 UDP üzerinde TCP benzeri güvenilir veri aktarımı yapan küçük bir eğitim projesi.
 
 UDP paketleri kaybedebilir, sırasını karıştırabilir ya da aynı paketi iki kez teslim edebilir. Bu projede UDP'nin üstüne ince bir katman ekleyerek bu sorunları **ARQ (Automatic Repeat reQuest)** yöntemiyle çözüyoruz. Amaç, TCP'nin içinde neler olduğunu basit bir şekilde görmek.
@@ -76,6 +80,10 @@ src/
   ReliableSocket.cpp   -> asıl protokol mantığı
   sender.cpp           -> gönderici programı
   receiver.cpp         -> alıcı programı
+tests/
+  ArqTests.cpp         -> birim testleri + loopback üzerinde uçtan uca aktarım testleri
+.github/workflows/
+  ci.yml               -> Linux / macOS + sanitizer CI
 ```
 
 `ReliableSocket` içindeki önemli kısımlar:
@@ -97,6 +105,16 @@ cmake --build build
 ```
 
 Derleme bitince `build/sender` ve `build/receiver` oluşur.
+
+### Testler
+
+```bash
+ctest --test-dir build --output-on-failure
+```
+
+Testler iki parçadan oluşuyor. Birinci kısım saf protokol mantığını kontrol ediyor: başlığın 14 bayt ve big-endian olması, checksum'ın RFC 1071'deki örnekle birebir aynı sonucu vermesi, tek bir bitin değişmesini yakalaması ve sıra numarası karşılaştırmasının `0xFFFFFFFF → 0` taşmasında doğru çalışması.
+
+İkinci kısım gerçek bir alıcı ve göndericiyi aynı süreçte, loopback üzerinde konuşturuyor. Hem Stop-and-Wait (pencere 1) hem Go-Back-N (pencere 8) için önce temiz bir hatta, sonra paketlerin %20'sinin iki yönde de rastgele düşürüldüğü bir hatta aktarım yapılıyor. Her seferinde alınan verinin gönderilenle bayt bayt aynı olduğu ve kayıplı hatta gerçekten yeniden gönderim yapıldığı kontrol ediliyor. GitHub Actions bu testleri her push'ta Linux ve macOS'ta, ayrıca ASan + UBSan ile çalıştırıyor.
 
 ## Çalıştırma
 
